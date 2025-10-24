@@ -1,6 +1,7 @@
-import http from "http";
+import http from "@frida/http";
 import Logger from "../lib/Logger.js";
 import Device from "./Device.js";
+import ObjC from "frida-objc-bridge";
 
 export const networkRequest = (path: string, data: object = {}): any => {
   const options = {
@@ -20,8 +21,8 @@ export const networkRequest = (path: string, data: object = {}): any => {
 
   return new Promise(function (resolve) {
     try {
-      const req = http.request(options, (res) => {
-        res.on("data", (d) => {
+      const req = http.request(options, (res: any) => {
+        res.on("data", (d: any) => {
           result += d;
         });
 
@@ -98,7 +99,7 @@ export const createDirectories = () => {
         Logger.log(`Creating ${dir} directory...`);
 
         const errorPtr = Memory.alloc(Process.pointerSize);
-        Memory.writePointer(errorPtr, NULL);
+        errorPtr.writePointer(NULL);
 
         const success =
           fileManager.createDirectoryAtPath_withIntermediateDirectories_attributes_error_(
@@ -111,7 +112,7 @@ export const createDirectories = () => {
         if (success) {
           Logger.log(`${dir} directory created successfully`);
         } else {
-          const error = new ObjC.Object(Memory.readPointer(errorPtr));
+          const error = new ObjC.Object(errorPtr.readPointer());
           Logger.log(
             `Failed to create ${dir} directory: ${error.localizedDescription()}`
           );

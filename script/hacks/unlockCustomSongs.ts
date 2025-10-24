@@ -25,7 +25,7 @@ export const unlockCustomSongs = async () => {
     .class("OptionsDialog")
     .method("SupportButtonPressed").implementation = async function () {
     Logger.log("[SupportButtonPressed] Support button pressed");
-    
+
     try {
       const RakshaModel = Il2Cpp.domain.assembly("RakshaModel").image;
       const lang = Il2Cpp.domain.assembly("SpaceApe.Lang").image;
@@ -53,7 +53,8 @@ export const unlockCustomSongs = async () => {
       const tr = translations.field("translations").value as Il2Cpp.Array;
       const locale = (
         (
-          (tr.get(0) as Il2Cpp.Object).field("translations").value as Il2Cpp.Array
+          (tr.get(0) as Il2Cpp.Object).field("translations")
+            .value as Il2Cpp.Array
         ).get(0) as Il2Cpp.Object
       )
         .field("key")
@@ -63,7 +64,9 @@ export const unlockCustomSongs = async () => {
 
       let reader = new CustomSongReader(dataCache);
       setCustomSongs(await reader.readCustomSongsOnDevice());
-      Logger.log(`[SupportButtonPressed] Loaded ${customSongs.length} custom songs`);
+      Logger.log(
+        `[SupportButtonPressed] Loaded ${customSongs.length} custom songs`
+      );
 
       const newLength = tr.length + customSongs.length * 2;
       const newTranslations = Il2Cpp.array(
@@ -95,7 +98,11 @@ export const unlockCustomSongs = async () => {
       const promises: Promise<void>[] = [];
 
       for (var x = 0; x < customSongs.length; x++) {
-        Logger.log(`[SupportButtonPressed] Processing song ${x + 1}/${customSongs.length}: ${customSongs[x].title}`);
+        Logger.log(
+          `[SupportButtonPressed] Processing song ${x + 1}/${
+            customSongs.length
+          }: ${customSongs[x].title}`
+        );
         promises.push(
           new Promise((resolve, reject) => {
             try {
@@ -131,10 +138,15 @@ export const unlockCustomSongs = async () => {
 
               newTranslations.set(index++, nameTranslation.build());
               newTranslations.set(index++, artistTranslation.build());
-              Logger.log(`[SupportButtonPressed] Successfully processed: ${customSongs[x].title}`);
+              Logger.log(
+                `[SupportButtonPressed] Successfully processed: ${customSongs[x].title}`
+              );
               resolve();
-            } catch (err) {
-              Logger.log(`[SupportButtonPressed] Error processing song: ${customSongs[x].title}`, err);
+            } catch (err: any) {
+              Logger.log(
+                `[SupportButtonPressed] Error processing song: ${customSongs[x].title} ` +
+                  err
+              );
               resolve(); // Still resolve to continue with other songs
             }
           })
@@ -148,22 +160,26 @@ export const unlockCustomSongs = async () => {
       Logger.log("[SupportButtonPressed] Translations updated");
 
       applyCustomSongScores();
-      Logger.log("[SupportButtonPressed] Custom songs hook completed successfully");
-    } catch (e) {
-      Logger.log("[SupportButtonPressed] Error in setup:", e);
-      Logger.log("[SupportButtonPressed] Stack trace:", e.stack);
+      Logger.log(
+        "[SupportButtonPressed] Custom songs hook completed successfully"
+      );
+    } catch (e: any) {
+      Logger.log("[SupportButtonPressed] Error in setup: " + e);
+      Logger.log("[SupportButtonPressed] Stack trace: " + e.stack);
     }
   };
 };
 
 const applyCustomSongScores = () => {
   try {
-    Logger.log("[applyCustomSongScores] Starting to apply custom song scores...");
-    
+    Logger.log(
+      "[applyCustomSongScores] Starting to apply custom song scores..."
+    );
+
     const RakshaModel = Il2Cpp.domain.assembly("RakshaModel").image;
     const assembly = Il2Cpp.domain.assembly("Assembly-CSharp").image;
     const metalogic = Il2Cpp.domain.assembly("MetaLogic").image;
-    
+
     const root = assembly.class("Config").field("Root").value as Il2Cpp.Object;
 
     const gradingSystem = Il2Cpp.gc.choose(metalogic.class("GradingSystem"))[0];
@@ -184,7 +200,9 @@ const applyCustomSongScores = () => {
         const idLabel = template.field("idLabel").value;
         return idLabel.toString().includes("file://");
       });
-    Logger.log(`[applyCustomSongScores] Found ${beatmaps.length} custom beatmaps`);
+    Logger.log(
+      `[applyCustomSongScores] Found ${beatmaps.length} custom beatmaps`
+    );
 
     for (const score of scores) {
       const beatmap = beatmaps.find((beatmap) => {
@@ -193,12 +211,14 @@ const applyCustomSongScores = () => {
           return true;
         }
       }) as Il2Cpp.Object;
-      
+
       if (!beatmap) {
-        Logger.log(`[applyCustomSongScores] WARNING: Beatmap not found for id ${score.beatmapId}`);
+        Logger.log(
+          `[applyCustomSongScores] WARNING: Beatmap not found for id ${score.beatmapId}`
+        );
         continue;
       }
-      
+
       try {
         const BeatmapScore = RakshaModel.class(
           "com.spaceape.config.BeatmapScore"
@@ -208,7 +228,8 @@ const applyCustomSongScores = () => {
         beatmap.field("HighestScore").value = BeatmapScore;
 
         const template = beatmap.field("_template").value as Il2Cpp.Object;
-        let variant = template.field("_BeatmapVariantReference").value as Il2Cpp.Object;
+        let variant = template.field("_BeatmapVariantReference")
+          .value as Il2Cpp.Object;
 
         const difficultyId = (
           variant.method("get_Difficulty").invoke() as Il2Cpp.Object
@@ -233,13 +254,16 @@ const applyCustomSongScores = () => {
             break;
           }
         }
-        
-        if (!medalFound) {
-          Logger.log(`[applyCustomSongScores] WARNING: Medal ${medal} not found in grades`);
-        }
 
-      } catch (err) {
-        Logger.log(`[applyCustomSongScores] Error applying score for beatmap ${score.beatmapId}: ${err.message}`);
+        if (!medalFound) {
+          Logger.log(
+            `[applyCustomSongScores] WARNING: Medal ${medal} not found in grades`
+          );
+        }
+      } catch (err: any) {
+        Logger.log(
+          `[applyCustomSongScores] Error applying score for beatmap ${score.beatmapId}: ${err.message}`
+        );
         Logger.log(err.stack);
       }
     }
@@ -252,19 +276,20 @@ const applyCustomSongScores = () => {
     if (!currencies) {
       throw new Error("UserCurrencies not found");
     }
-    
+
     let starDefinition = currencies
       .method("get_StarCurrencyDefinition")
       .invoke() as Il2Cpp.Object;
-    
+
     currencies
       .method("Set")
       .overload("com.spaceape.config.CurrencyDefinition", "System.Int32")
       .invoke(starDefinition, newStarCount);
-    
-    Logger.log("[applyCustomSongScores] Custom song scores applied successfully");
 
-  } catch (error) {
+    Logger.log(
+      "[applyCustomSongScores] Custom song scores applied successfully"
+    );
+  } catch (error: any) {
     Logger.log(`[applyCustomSongScores] CRITICAL ERROR: ${error.message}`);
     Logger.log(`[applyCustomSongScores] Stack trace: ${error.stack}`);
   }

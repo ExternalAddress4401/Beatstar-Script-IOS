@@ -1,5 +1,4 @@
 import "frida-il2cpp-bridge";
-
 import { lengthFixer } from "../functions/lengthFixer.js";
 import { unlockAllSongs } from "../hacks/unlockAllSongs.js";
 import { unlockCustomSongs } from "../hacks/unlockCustomSongs.js";

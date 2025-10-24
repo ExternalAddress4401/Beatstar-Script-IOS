@@ -14,14 +14,14 @@ export const getScores = () => {
       const scores = (await networkRequest("/getScores", {
         androidId: Device.getDeviceID(),
       })) as string;
-      
+
       Logger.log(`Scores: ${scores}`);
       const parsedScores = JSON.parse(scores);
       setScores(parsedScores);
       resolve(parsedScores);
     } catch (e: any) {
       Logger.log(`Error fetching scores: ${e}`);
-      resolve([]); // Risolve con array vuoto in caso di errore
+      resolve([]);
     }
   });
 };

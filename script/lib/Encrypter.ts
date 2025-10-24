@@ -1,5 +1,3 @@
-import { Buffer } from "buffer";
-
 export const decrypt = (data: string): string => {
   const str = data.toString().split("");
 

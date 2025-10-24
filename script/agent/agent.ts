@@ -34,7 +34,7 @@ Il2Cpp.perform(async () => {
   if (SettingsReader.getSetting("forceLogin") === "true") {
     showLoginScreen();
   }
-  
+
   Logger.log(`Inside perform block with ${done}`);
 
   createNewUser();

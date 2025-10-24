@@ -12,10 +12,8 @@ import { forcePlayableSongs } from "../hacks/forcePlayableSongs.js";
 import { disableTutorial } from "../functions/disableTutorial.js";
 import { disableNews } from "../functions/disableNews.js";
 import Logger from "../lib/Logger.js";
-import { saveUsername } from "./saveUsername.js";
 
 export const activateMod = () => {
-  saveUsername();
   Logger.log("Activating mod...");
   killErrorHandler();
   Logger.log("Killed error handler");

@@ -4,6 +4,7 @@ import BeatmapTemplate from "./BeatmapTemplate.js";
 import DataCache from "./DataCache.js";
 import Logger from "./Logger.js";
 import Device from "./Device.js";
+import Java from "frida-java-bridge";
 
 const patchFile = (path: string, offset: number) => {
   const mscorlib = Il2Cpp.domain.assembly("mscorlib").image;
@@ -117,7 +118,12 @@ export default class CustomSongReader {
               let config;
 
               // check if config.json exists
-              if (mscorlib.class("System.IO.File").method("Exists").invoke(Il2Cpp.string(`${path}/config.json`))) {
+              if (
+                mscorlib
+                  .class("System.IO.File")
+                  .method("Exists")
+                  .invoke(Il2Cpp.string(`${path}/config.json`))
+              ) {
                 try {
                   config = mscorlib
                     .class("System.IO.File")
@@ -132,13 +138,13 @@ export default class CustomSongReader {
                       let subKeys = Object.keys(config[key]);
                       for (const subKey of subKeys) {
                         t._Song[subKey] = config[key][subKey];
-                        t._BeatmapVariantReference._Song[subKey] = config[key][subKey];
+                        t._BeatmapVariantReference._Song[subKey] =
+                          config[key][subKey];
                       }
                     }
                   }
-                } catch (e) { }
+                } catch (e) {}
               }
-
 
               Logger.log(
                 `[readCustomSongsOnDevice] Building template for: ${data.title}`
@@ -201,7 +207,8 @@ export default class CustomSongReader {
           )}`
         );
         Device.alert(
-          `${brokenSongs.length} broken song${brokenSongs.length === 1 ? "" : "s"
+          `${brokenSongs.length} broken song${
+            brokenSongs.length === 1 ? "" : "s"
           } detected. See log for names.`
         );
       }

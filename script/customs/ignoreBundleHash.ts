@@ -15,7 +15,7 @@ export const ignoreBundleHash = () => {
       "UnityEngine.Hash128",
       "System.UInt32"
     ).implementation = function (uri: any) {
-    const genHash = (size) =>
+    const genHash = (size: number) =>
       [...Array(size)]
         .map(() => Math.floor(Math.random() * 16).toString(16))
         .join("");
