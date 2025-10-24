@@ -1,3 +1,5 @@
+/// <reference path="../types/frida-http.d.ts" />
+
 import "frida-il2cpp-bridge";
 import Logger from "../lib/Logger.js";
 import SettingsReader from "../lib/SettingsReader.js";

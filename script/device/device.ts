@@ -7,10 +7,12 @@ import { hookGraphics } from "../hacks/graphics.js";
 import Logger from "../lib/Logger.js";
 import Device from "../lib/Device.js";
 import { ignoreNotificationErrors } from "../utilities/ignoreNotificationErrors.js";
+import { saveProfile } from "../utilities/saveProfile.js";
 
 Logger.log("Starting mod...");
 
 Il2Cpp.perform(async () => {
+  saveProfile();
   try {
     const scores = await getScores();
     let messageString = "mod loaded";

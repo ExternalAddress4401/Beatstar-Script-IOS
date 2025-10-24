@@ -1,7 +1,7 @@
 const esbuild = require("esbuild");
 const fs = require("fs");
 
-const outfile = "script.js";
+const outfile = "file.js";
 
 /**
  * Crypto isn't supported without a shim so we'll use xor encoding instead
@@ -20,19 +20,18 @@ const xor = (data) => {
 };
 
 async function build(prod, test, agent) {
-  let path = "./script/device/device.ts";  // default path
-  
-  if (agent) {
-    path = "./script/agent/agent.ts";
-  }
-
   await esbuild.build({
-    entryPoints: [path],
+    entryPoints: [
+      test
+        ? "./test/test.js"
+        : agent
+        ? "./agent/agent.js"
+        : "./device/device.js",
+    ],
     bundle: true,
     outfile,
+    minify: prod,
     plugins: [shim],
-    legalComments: 'none',
-    logLevel: 'error',
   });
 }
 
@@ -92,15 +91,8 @@ async function run() {
       "go.ok=function(){return true;};go.equal=function(){return true;};bo.HTTPParser=T"
     )
     .split("\n");
-
   for (var i = 0; i < file.length; i++) {
     const line = file[i].trim();
-    if (line === "}, 1e4);") {
-      file[i] = "}, 3e3);";
-    }
-    if (line.includes('Process.platform == "darwin"')) {
-      file[i] = "       value: await forModule(...getExpectedModuleNames())";
-    }
     if (line.startsWith("exports.HTTPParser = HTTPParser2;")) {
       file[i] =
         "assert2.ok=function(){return true;};assert2.equal=function(){return true;};" +

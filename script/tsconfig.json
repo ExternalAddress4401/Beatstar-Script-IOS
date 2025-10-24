@@ -3,14 +3,16 @@
     "target": "esnext",
     "lib": ["es2020"],
     "experimentalDecorators": true,
-    "module": "nodenext",
-    "allowJs": false,
+    "module": "esnext",
+    "allowJs": true,
     "noEmit": false,
     "esModuleInterop": false,
     "moduleResolution": "nodenext",
     "strict": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "checkJs": false
   },
   "files": ["agent/agent.ts"],
-  "types": ["frida-gum"]
+  "include": ["types", "agent/frida-http.d.ts"],
+  "exclude": ["node_modules"]
 }
