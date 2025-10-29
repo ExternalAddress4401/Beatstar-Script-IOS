@@ -1,34 +1,21 @@
-import { killErrorHandler } from "../utilities/killErrorHandler.js";
 import { disableChecksum } from "../hacks/disableChecksum.js";
 import { customColors } from "../functions/customColors.js";
-import { freeUnlimitedPlay } from "../hacks/freeUnlimitedPlay.js";
 import { freeRestarts } from "../hacks/freeRestarts.js";
-import { saveScores } from "../server/saveScores.js";
-import { unlockAllSkins } from "../hacks/unlockAllSkins.js";
 import { noFail } from "../functions/noFail.js";
 import { autoplay } from "../functions/autoplay.js";
 import { search } from "../functions/search.js";
 import { forcePlayableSongs } from "../hacks/forcePlayableSongs.js";
 import { disableTutorial } from "../functions/disableTutorial.js";
-import { disableNews } from "../functions/disableNews.js";
 import Logger from "../lib/Logger.js";
 
 export const activateMod = () => {
   Logger.log("Activating mod...");
-  killErrorHandler();
-  Logger.log("Killed error handler");
   disableChecksum();
   Logger.log("Disabled checksum");
   customColors();
   Logger.log("Custom colors");
-  freeUnlimitedPlay();
-  Logger.log("Free unlimited play");
   freeRestarts();
   Logger.log("Free restarts");
-  saveScores();
-  Logger.log("Saved scores");
-  unlockAllSkins();
-  Logger.log("Unlocked all skins");
   noFail();
   Logger.log("No fail");
   autoplay();
@@ -39,7 +26,5 @@ export const activateMod = () => {
   Logger.log("Force playable songs");
   disableTutorial();
   Logger.log("Disabled tutorial");
-  disableNews();
-  Logger.log("Disabled news");
   Logger.log("Mod activated");
 };

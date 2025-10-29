@@ -20,6 +20,8 @@ export const saveProfile = () => {
         .method("Serialize")
         .invoke(objects[0] as any, o) as Il2Cpp.String;
 
+      console.log(objects[0]);
+
       const parsed = JSON.parse(str.content);
       fs.writeFileSync(
         Device.documents("profile"),

@@ -20,12 +20,7 @@ interface Settings {
   aPlusColor?: Color;
   aColor?: Color;
   bColor?: Color;
-  disableScoreSync?: string;
-  loadLocalScript?: string;
-  logErrors?: string;
-  version?: string;
   fps?: number;
-  forceLogin?: string;
 }
 
 class SettingsReader {
@@ -43,7 +38,7 @@ class SettingsReader {
     } catch (e) {
       const error = e as Error;
       if (Logger) {
-       Logger.log(`Error reading settings file: ${error.message}`);
+        Logger.log(`Error reading settings file: ${error.message}`);
       }
     }
     Logger.log("Ended reading settings file");

@@ -8,8 +8,6 @@ import fs from "frida-fs";
 import { getLiveVersion, getLocalVersion } from "../utilities/Versioner.js";
 import { decrypt } from "../lib/Encrypter.js";
 import { Buffer } from "buffer";
-import { sleep } from "../utilities/sleep.js";
-import { isUndefined } from "../utilities/isUndefined.js";
 import { createDirectories, networkRequest } from "../lib/Utilities.js";
 
 type RPCStatus = "NO_ACTION" | "EXECUTE" | "EXECUTE_LOCAL" | "NEW_VERSION";
@@ -33,15 +31,7 @@ rpc.exports = {
 };
 
 Il2Cpp.perform(async () => {
-  if (SettingsReader.getSetting("forceLogin") === "true") {
-    showLoginScreen();
-  }
-
   Logger.log(`Inside perform block with ${done}`);
-
-  createNewUser();
-
-  Logger.log("Finished init");
 
   switch (done) {
     case "EXECUTE":
@@ -59,34 +49,8 @@ Il2Cpp.perform(async () => {
   }
 }, "main");
 
-const showLoginScreen = () => {
-  const loginRuntime = Il2Cpp.domain.assembly("SpaceApe.Login.Runtime").image;
-
-  loginRuntime.class("LoginPicker").method(".ctor").implementation = function (
-    a,
-    b,
-    c,
-    d
-  ) {
-    this.method(".ctor").invoke(a, b, c, d);
-    this.method("ShowPlayerLogin").invoke();
-  };
-};
-
-const createNewUser = () => {
-  Logger.log("Checking if it's our first time using the mod...");
-  networkRequest("/createAccount", { deviceId: Device.getDeviceID() });
-};
-
 const shouldLoadScript = () => {
   return SettingsReader.getSetting("loadScript") !== "false";
-};
-
-const isServerModified = () => {
-  return (
-    !isUndefined(SettingsReader.getSetting("ip")) ||
-    !isUndefined(SettingsReader.getSetting("port"))
-  );
 };
 
 const hasLocalScript = () => {
@@ -118,26 +82,12 @@ const executeScript = async () => {
   }
 };
 
-const handleDelay = async () => {
-  const delay = SettingsReader.getSetting("delay") as number;
-  if (delay) {
-    await sleep(delay);
-  }
-  return;
-};
-
 async function run(): Promise<RPCStatus> {
   createDirectories();
   if (!shouldLoadScript()) {
     Logger.log("Not loading script due to settings file.");
     Device.alert("Not loading script due to settings file");
     return "NO_ACTION";
-  }
-  if (isServerModified()) {
-    Logger.log("Server is modified.");
-    Device.alert(
-      "Modified server configuration detected. Do not report bugs that occur from this."
-    );
   }
 
   if (hasLocalScript()) {
