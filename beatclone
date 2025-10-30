@@ -90,7 +90,7 @@ show_help() {
     echo -e "${BLUE}${BOLD}USAGE:${NC} $0 <command> [options]"
     echo
     echo -e "${BLUE}${BOLD}COMMANDS:${NC}"
-    echo -e "  ${PURPLE}${BOLD}build <SIGNING_KEY>${NC}        Build and deploy IPA"
+    echo -e "  ${PURPLE}${BOLD}build${NC}        B             BuildIPA"
     echo -e "  ${PURPLE}${BOLD}install${NC}                    Install from Payload"
     echo -e "  ${PURPLE}${BOLD}clean${NC}                      Clean up temporary files"
     echo -e "  ${PURPLE}${BOLD}script${NC}                     Compile and update the script"
@@ -134,69 +134,19 @@ setup_python_env() {
     fi
 }
 
-find_provisioning_profile() {
-    log_step "Searching for provisioning profiles..."
-
-    profile_dirs=(
-        "$HOME/Library/MobileDevice/Provisioning Profiles"
-        "$HOME/Library/Developer/Xcode/DerivedData"
-    )
-
-    provisioning_profiles=()
-
-    for dir in "${profile_dirs[@]}"; do
-        if [ -d "$dir" ]; then
-            while IFS= read -r -d '' profile; do
-                provisioning_profiles+=("$profile")
-            done < <(find "$dir" -type f -name "*.mobileprovision" -print0)
-        fi
-    done
-
-    if [ ${#provisioning_profiles[@]} -eq 0 ]; then
-        log_error "No provisioning profiles found in specified directories"
-        exit 1
-    fi
-
-    latest_profile=""
-    latest_expiration=0
-
-    for profile in "${provisioning_profiles[@]}"; do
-        expiration_date=$(security cms -D -i "$profile" 2>/dev/null | plutil -extract ExpirationDate xml1 -o - - 2>/dev/null | grep -Eo '<date>[^<]+</date>' | sed -E 's/<\/?date>//g')
-        if [ -z "$expiration_date" ]; then
-            continue
-        fi
-
-        expiration_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$expiration_date" +"%s" 2>/dev/null)
-        if [ -z "$expiration_epoch" ]; then
-            continue
-        fi
-
-        if [ "$expiration_epoch" -gt "$latest_expiration" ]; then
-            latest_expiration="$expiration_epoch"
-            latest_profile="$profile"
-        fi
-    done
-
-    if [ -z "$latest_profile" ]; then
-        log_error "Could not find a valid provisioning profile"
-        exit 1
-    fi
-
-    cp "$latest_profile" "./embedded.mobileprovision"
-    signpath="./embedded.mobileprovision"
-    log_step "Selected provisioning profile: $latest_profile"
-}
-
 #===============================================================================
 # BUILD AND DEPLOYMENT FUNCTIONS
 #===============================================================================
 
 build_script() {
     log_step "Building the script..."
-    if ! node ./script/build.js ./script/device/device.ts > /dev/null 2>&1; then
+    cd script
+    if ! node ./build.js -agent > /dev/null 2>&1; then
         log_error "Failed to build script"
         exit 1
     fi
+    mv script.js ../
+    cd ../
 
     if [ -d "Payload/Beatstar.app/Frameworks" ]; then
         log_info "Updating script in Payload/Frameworks..."
@@ -308,23 +258,10 @@ done
 
 case $COMMAND in
     build)
-        if [ -z "$SIGNING_KEY" ]; then
-            log_error "Signing key is required for build"
-            echo
-            show_help
-            exit 1
-        fi
-
         log_step "Starting build process..."
         cleanup
 
         setup_python_env
-
-        log_step "Validating signing certificate..."
-        if ! security find-identity -v -p codesigning | grep -q "$SIGNING_KEY"; then
-            log_error "Invalid signing certificate: $SIGNING_KEY"
-            exit 1
-        fi
 
         log_step "Checking required files..."
         if [ ! -d "./script" ]; then
@@ -421,49 +358,9 @@ case $COMMAND in
         fi
 
         log_step "Preparing IPA..."
-        if ! zip -rq Payload.zip Payload; then
-            log_error "Failed to create Payload.zip"
+        if ! zip -rq Payload.ipa Payload; then
+            log_error "Failed to create Payload.ipa"
             exit 1
-        fi
-
-        log_step "Signing IPA..."
-        if [ -f "./embedded.mobileprovision" ]; then
-            signpath="./embedded.mobileprovision"
-        elif [ -f "./beatzeph.mobileprovision" ]; then
-            signpath="./beatzeph.mobileprovision"
-        else
-            find_provisioning_profile
-        fi
-
-        if [ "$DEBUG_MODE" = true ]; then
-            if ! applesign -i "$SIGNING_KEY" -m "$signpath" -o Payload.ipa Payload.zip -a; then
-                log_error "Failed to sign IPA"
-                exit 1
-            fi
-        else
-            if ! applesign -i "$SIGNING_KEY" -m "$signpath" -o Payload.ipa Payload.zip -a > /dev/null 2>&1; then
-                log_error "Failed to sign IPA"
-                exit 1
-            fi
-        fi
-
-        log_step "Extracting signed IPA..."
-        if ! unzip -o -q Payload.ipa; then
-            log_error "Failed to extract signed IPA"
-            exit 1
-        fi
-
-        log_step "Deploying to device..."
-        if [ "$DEBUG_MODE" = true ]; then
-            if ! ios-deploy --bundle Payload/Beatstar.app -W --debug; then
-                log_error "Failed to deploy to device in debug mode"
-                exit 1
-            fi
-        else
-            if ! ios-deploy --bundle Payload/Beatstar.app -W > /dev/null 2>&1; then
-                log_error "Failed to deploy to device"
-                exit 1
-            fi
         fi
 
         cleanup_temp

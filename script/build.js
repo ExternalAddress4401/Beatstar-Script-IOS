@@ -20,10 +20,10 @@ const xor = (data) => {
 };
 
 async function build(prod, test, agent) {
-  let path = "./script/device/device.ts";  // default path
-  
+  let path = "./device/device.ts"; // default path
+
   if (agent) {
-    path = "./script/agent/agent.ts";
+    path = "./agent/agent.ts";
   }
 
   await esbuild.build({
@@ -31,8 +31,8 @@ async function build(prod, test, agent) {
     bundle: true,
     outfile,
     plugins: [shim],
-    legalComments: 'none',
-    logLevel: 'error',
+    legalComments: "none",
+    logLevel: "error",
   });
 }
 
