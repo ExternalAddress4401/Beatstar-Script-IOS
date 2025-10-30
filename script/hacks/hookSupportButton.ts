@@ -5,18 +5,16 @@ import {
   setDataCache,
   setCustomSongs,
   dataCache,
-  scores,
 } from "../lib/Globals.js";
-import { activateMod } from "../utilities/activateMod.js";
 import { songNameHack } from "./songName.js";
 import { hookOnDeviceBundles } from "../customs/hookOnDeviceBundles.js";
 import { ignoreBundleHash } from "../customs/ignoreBundleHash.js";
 import { hookRemoteBundles } from "../customs/hookRemoteBundles.js";
 import Translation from "../lib/Translation.js";
-import { scoreToMedal } from "../lib/Utilities.js";
 import Logger from "../lib/Logger.js";
+import { disableChecksum } from "./disableChecksum.js";
 
-export const unlockCustomSongs = async () => {
+export const hookSupportButton = async () => {
   Logger.log("[unlockCustomSongs] Setting up custom songs hook...");
 
   const assembly = Il2Cpp.domain.assembly("Assembly-CSharp").image;
@@ -25,15 +23,15 @@ export const unlockCustomSongs = async () => {
     .class("OptionsDialog")
     .method("SupportButtonPressed").implementation = async function () {
     Logger.log("[SupportButtonPressed] Support button pressed");
-    
+
     try {
       const RakshaModel = Il2Cpp.domain.assembly("RakshaModel").image;
       const lang = Il2Cpp.domain.assembly("SpaceApe.Lang").image;
       const metalogic = Il2Cpp.domain.assembly("MetaLogic").image;
       Logger.log("[SupportButtonPressed] Assemblies loaded");
 
-      activateMod();
-      Logger.log("[SupportButtonPressed] Mod activated");
+      disableChecksum();
+      Logger.log("Disabled checksum");
 
       setDataCache(new DataCache(RakshaModel));
       Logger.log("[SupportButtonPressed] DataCache initialized");
@@ -53,7 +51,8 @@ export const unlockCustomSongs = async () => {
       const tr = translations.field("translations").value as Il2Cpp.Array;
       const locale = (
         (
-          (tr.get(0) as Il2Cpp.Object).field("translations").value as Il2Cpp.Array
+          (tr.get(0) as Il2Cpp.Object).field("translations")
+            .value as Il2Cpp.Array
         ).get(0) as Il2Cpp.Object
       )
         .field("key")
@@ -63,7 +62,9 @@ export const unlockCustomSongs = async () => {
 
       let reader = new CustomSongReader(dataCache);
       setCustomSongs(await reader.readCustomSongsOnDevice());
-      Logger.log(`[SupportButtonPressed] Loaded ${customSongs.length} custom songs`);
+      Logger.log(
+        `[SupportButtonPressed] Loaded ${customSongs.length} custom songs`
+      );
 
       const newLength = tr.length + customSongs.length * 2;
       const newTranslations = Il2Cpp.array(
@@ -95,7 +96,11 @@ export const unlockCustomSongs = async () => {
       const promises: Promise<void>[] = [];
 
       for (var x = 0; x < customSongs.length; x++) {
-        Logger.log(`[SupportButtonPressed] Processing song ${x + 1}/${customSongs.length}: ${customSongs[x].title}`);
+        Logger.log(
+          `[SupportButtonPressed] Processing song ${x + 1}/${
+            customSongs.length
+          }: ${customSongs[x].title}`
+        );
         promises.push(
           new Promise((resolve, reject) => {
             try {
@@ -131,10 +136,15 @@ export const unlockCustomSongs = async () => {
 
               newTranslations.set(index++, nameTranslation.build());
               newTranslations.set(index++, artistTranslation.build());
-              Logger.log(`[SupportButtonPressed] Successfully processed: ${customSongs[x].title}`);
+              Logger.log(
+                `[SupportButtonPressed] Successfully processed: ${customSongs[x].title}`
+              );
               resolve();
             } catch (err) {
-              Logger.log(`[SupportButtonPressed] Error processing song: ${customSongs[x].title}`, err);
+              Logger.log(
+                `[SupportButtonPressed] Error processing song: ${customSongs[x].title}`,
+                err
+              );
               resolve(); // Still resolve to continue with other songs
             }
           })
@@ -147,8 +157,10 @@ export const unlockCustomSongs = async () => {
       translations.field("translations").value = newTranslations;
       Logger.log("[SupportButtonPressed] Translations updated");
 
-      applyCustomSongScores();
-      Logger.log("[SupportButtonPressed] Custom songs hook completed successfully");
+      //applyCustomSongScores();
+      Logger.log(
+        "[SupportButtonPressed] Custom songs hook completed successfully"
+      );
     } catch (e) {
       Logger.log("[SupportButtonPressed] Error in setup:", e);
       Logger.log("[SupportButtonPressed] Stack trace:", e.stack);
@@ -156,7 +168,7 @@ export const unlockCustomSongs = async () => {
   };
 };
 
-const applyCustomSongScores = () => {
+/*const applyCustomSongScores = () => {
   try {
     Logger.log("[applyCustomSongScores] Starting to apply custom song scores...");
     
@@ -268,4 +280,4 @@ const applyCustomSongScores = () => {
     Logger.log(`[applyCustomSongScores] CRITICAL ERROR: ${error.message}`);
     Logger.log(`[applyCustomSongScores] Stack trace: ${error.stack}`);
   }
-};
+};*/
