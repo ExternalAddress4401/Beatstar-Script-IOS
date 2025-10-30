@@ -10,10 +10,8 @@ export interface Color {
 }
 
 interface Settings {
-  gameIp: string;
-  gamePort?: number;
-  ip?: string;
-  port?: number;
+  serverIp: string;
+  serverPort?: number;
   graphics?: "low" | "med" | "high" | "high_120";
   delay?: number;
   loadScript?: string;

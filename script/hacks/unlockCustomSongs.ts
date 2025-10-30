@@ -5,7 +5,6 @@ import {
   setDataCache,
   setCustomSongs,
   dataCache,
-  scores,
 } from "../lib/Globals.js";
 import { activateMod } from "../utilities/activateMod.js";
 import { songNameHack } from "./songName.js";
@@ -159,7 +158,7 @@ export const unlockCustomSongs = async () => {
       translations.field("translations").value = newTranslations;
       Logger.log("[SupportButtonPressed] Translations updated");
 
-      applyCustomSongScores();
+      //applyCustomSongScores();
       Logger.log(
         "[SupportButtonPressed] Custom songs hook completed successfully"
       );
